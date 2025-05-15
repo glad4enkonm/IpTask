@@ -1,0 +1,14 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672" # RabbitMQ management UI
+#    networks:
+#      - wire
+
+#networks:
+#  wire:
+#    driver: bridges
+
+      
