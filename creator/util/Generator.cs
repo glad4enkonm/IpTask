@@ -15,8 +15,8 @@ public class RandomMessageGenerator(IOptions<Generation> options) : IMessageGene
     /// <returns>50% шанс для IPv4, 50% для IPv6</returns>
     static public string GetRandomIp()
     {
-        if (_random.Next(2) == 0)
-            return $"{_random.Next(1, 255)}.{_random.Next(0, 255)}.{_random.Next(0, 255)}.{_random.Next(0, 255)}";
+        if (_random.Next(2) == 0) // ограничиваемся здесь только исключением адресов тип 0.*
+            return $"{_random.Next(1, 256)}.{_random.Next(0, 256)}.{_random.Next(0, 256)}.{_random.Next(0, 256)}";
 
         var hextets = new string[8];
         for (var i = 0; i < 8; i++)
