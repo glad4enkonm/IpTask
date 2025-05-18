@@ -4,6 +4,47 @@ using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using processor.config;
+
+/*
+Формат переменных среды для переопределения значений конфигурации
+
+export ShardingConfig__Shards__0__Host="db0.mycompany.local"
+export ShardingConfig__Shards__0__Database="prod_user_db_0"
+export ShardingConfig__Shards__0__Username="prod_user"
+export ShardingConfig__Shards__0__Password="12345"
+*/
+
+// Строим конфигурацию
+var config = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json") // здесь можно было добавить метаданные и сделать авто проверку конфигурации
+    .AddEnvironmentVariables() // переопределяем значения из среды
+    .Build();
+
+// Поддержка DI
+var services = new ServiceCollection();
+
+// Регистрируем конфигурации
+services.Configure<Sharding>(config.GetSection("Sharding"));
+
+
+// services.AddSingleton<IMessageBatchSender, RabbitMessageSender>();
+
+
+var serviceProvider = services.BuildServiceProvider();
+
+// var sender = serviceProvider.GetRequiredService<IRateRegulatedSender>();
+// sender.Start();
+
+// Ожидаем завершения
+// Console.Read();
+// sender.Stop();
+
+
+/*
 var factory = new ConnectionFactory { HostName = "localhost" };
 
 using var connection = await factory.CreateConnectionAsync();
@@ -37,3 +78,4 @@ await channel.BasicConsumeAsync(queue: "demo_queue",
 
 // Ожидаем чтобы потребитель продолжал получать сообщения
 Console.Read();
+*/
