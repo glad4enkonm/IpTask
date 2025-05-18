@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS ip_to_user_registry_ip_shard (
     ip_address INET NOT NULL,       -- IP-адрес (IPv4 или IPv6)
     user_id BIGINT NOT NULL,        -- Идентификатор пользователя, связанного с этим IP
     last_seen_at TIMESTAMPTZ NOT NULL, -- Время последнего обнаружения этой пары (ip_address, user_id)
-    ip_address_search_text TEXT,    -- Нормализованное текстовое представление IP для префиксного поиска (например, полностью развернутый IPv6)
+    ip_address_search_text TEXT NOT NULL,    -- Нормализованное текстовое представление IP для префиксного поиска (например, полностью развернутый IPv6)
 
     -- Первичный ключ обеспечивает уникальность пары (ip_address, user_id)
     -- Для одного IP может быть несколько пользователей,
