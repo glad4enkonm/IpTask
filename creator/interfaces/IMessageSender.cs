@@ -1,6 +1,6 @@
 namespace creator.interfaces;
 
-public interface IMessageSender
+public interface IMessageBatchSender
 {
     Task SendBatch(uint batchSize);
 }

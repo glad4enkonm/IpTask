@@ -2,5 +2,7 @@ namespace creator.interfaces;
 
 public interface IMetricsTracker
 {
-    void TrackBatch(uint messagesSent, double elapsedMilliseconds);
+    void TrackBatch(long messagesSent, double elapsedMilliseconds);
+    void TrackError(Exception ex);
+    void TrackLog(string info);
 }

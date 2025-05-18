@@ -1,58 +1,36 @@
 ﻿using creator.util;
-using RabbitMQ.Client;
-using System.Diagnostics;
-using System.Text;
-using System.Text.Json;
 
-var factory = new ConnectionFactory { HostName = "localhost" };
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using creator.settings;
+using creator.interfaces;
+using creator.queue;
+using creator;
 
-using var connection = await factory.CreateConnectionAsync();
-using var channel = await connection.CreateChannelAsync();
+// Строим конфигурацию
+var config = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json") // здесь можно было добавить метаданные и сделать авто проверку конфигурации
+    .AddEnvironmentVariables() // переопределяем значения из среды
+    .Build();
 
-Console.WriteLine("Введите количество пакетов в сек.");
-var rate = int.Parse(Console.ReadLine()!);
+// Поддержка DI
+var services = new ServiceCollection();
 
-var stopwatch = new Stopwatch();
+// Регистрируем конфигурации
+services.Configure<RabbitMq>(config.GetSection("RabbitMq"));
+services.Configure<Generation>(config.GetSection("Generation"));
 
+services.AddSingleton<IMessageBatchSender, RabbitMessageSender>();
+services.AddSingleton<IMessageGenerator, RandomMessageGenerator>();
+services.AddSingleton<IMetricsTracker, ConsoleMetricsTracker>();
+services.AddSingleton<IRateRegulatedSender, RateRegulatedSender>();
 
-async void SendMessageBatch(object? sender, System.Timers.ElapsedEventArgs e)
-{
-    int messagesSent = 0;
-    stopwatch.Restart();
+var serviceProvider = services.BuildServiceProvider();
 
-    try
-    {
-        for (int i = 0; i < rate; i++)
-        {
-            var message = Generator.GetRandomMessage();
-
-            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
-            await channel.BasicPublishAsync(exchange: "",
-                routingKey: "demo_queue",
-                mandatory: true,
-                basicProperties: new BasicProperties { Persistent = true },
-                body: body);
-
-            messagesSent += 1;
-        }
-    }
-    finally
-    {
-        stopwatch.Stop();
-        var elapsedMs = stopwatch.Elapsed.TotalMilliseconds;
-
-        Console.WriteLine($"Отправлено {messagesSent} сообщений за {elapsedMs:F2} ms");
-        if (elapsedMs > 1000)
-            Console.WriteLine($"🚨 отправка пакета сообщений заняла ({elapsedMs:F2} ms)");
-    }
-}
-
-var timer = new System.Timers.Timer(1000);
-
-Console.WriteLine($"Начинаем отправку пакетов на скорости {rate} собщ./сек.");
-timer.Elapsed += SendMessageBatch;
-timer.Start();
+var sender = serviceProvider.GetRequiredService<IRateRegulatedSender>();
+sender.Start();
 
 // Ожидаем завершения
 Console.Read();
-timer.Stop();
+sender.Stop();

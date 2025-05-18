@@ -19,5 +19,12 @@
   <ItemGroup>
     <ProjectReference Include="../contract/contract.csproj" />
   </ItemGroup>
+  <ItemGroup>
+  <None Update="appsettings.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+  </ItemGroup>
+
+
 
 </Project>
